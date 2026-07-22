@@ -1,6 +1,9 @@
 -- ===== games/MoneySimulator1_4_0.lua =====
 local MoneySimulator1_4_0 = {}
 
+local RunService = game:GetService("RunService")
+local autoMoneyConnection = nil
+
 local function formatNumber(n)
 	local suffixes = { "", "K", "M", "B", "T", "Qa", "Qi" }
 	local index = 1
@@ -33,32 +36,40 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 		Flag = "AutoMoney",
 		Callback = function(Value)
 			if Value then
-				task.spawn(function()
-					while Rayfield.Flags["AutoMoney"].CurrentValue and IsActiveSession() do
-						pcall(function()
-							game.ReplicatedStorage.BobuxEvent:FireServer()
-
-							local player = game.Players.LocalPlayer
-							local stats = player:FindFirstChild("stats")
-							local gui = player.PlayerGui:FindFirstChild("ScreenGui")
-
-							if stats and gui then
-								local req = 10 * 1.25 ^ stats.Level.Value
-								gui.LevelBar.Bar.Size = UDim2.new(stats.XP.Value / req, 0, 1, 0)
-								gui.LvlTxt.Text = "Level "
-									.. stats.Level.Value
-									.. " ("
-									.. math.floor(stats.XP.Value / req * 100)
-									.. "%) "
-									.. formatNumber(stats.XP.Value)
-									.. "/"
-									.. formatNumber(req)
-								gui.ClickPoints.Text = formatNumber(stats.ClickPoints.Value)
-							end
-						end)
-						task.wait(0.05)
+				autoMoneyConnection = RunService.Heartbeat:Connect(function()
+					if not (Rayfield.Flags["AutoMoney"].CurrentValue and IsActiveSession()) then
+						if autoMoneyConnection then
+							autoMoneyConnection:Disconnect()
+							autoMoneyConnection = nil
+						end
+						return
 					end
+
+					pcall(function()
+						game.ReplicatedStorage.BobuxEvent:FireServer()
+
+						local player = game.Players.LocalPlayer
+						local stats = player:FindFirstChild("stats")
+						local gui = player.PlayerGui:FindFirstChild("ScreenGui")
+
+						if stats and gui then
+							local req = 10 * 1.25 ^ stats.Level.Value
+							gui.LevelBar.Bar.Size = UDim2.new(stats.XP.Value / req, 0, 1, 0)
+							gui.LvlTxt.Text = "Level "
+								.. stats.Level.Value
+								.. " ("
+								.. math.floor(stats.XP.Value / req * 100)
+								.. "%) "
+								.. formatNumber(stats.XP.Value)
+								.. "/"
+								.. formatNumber(req)
+							gui.ClickPoints.Text = formatNumber(stats.ClickPoints.Value)
+						end
+					end)
 				end)
+			elseif autoMoneyConnection then
+				autoMoneyConnection:Disconnect()
+				autoMoneyConnection = nil
 			end
 		end,
 	})
