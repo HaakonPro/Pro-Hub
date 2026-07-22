@@ -14,7 +14,7 @@ function MoneyClickerInc.Init(Window, Rayfield, IsActiveSession)
         Callback = function(Value)
             if Value then
                 task.spawn(function()
-                    while Rayfield:GetFlagValue("AutoClickMoney") and IsActiveSession() do
+                    while Rayfield.Flags["AutoClickMoney"].CurrentValue and IsActiveSession() do
                         local ok, err = pcall(function()
                             game:GetService("ReplicatedStorage").Events.ClickMoney:FireServer()
                         end)
