@@ -1,4 +1,5 @@
 -- ===== Loader.lua =====
+
 getgenv().SessionID = getgenv().SessionID or 0
 getgenv().SessionID += 1
 local mySession = getgenv().SessionID
@@ -15,7 +16,7 @@ local BASE_URL = "https://raw.githubusercontent.com/HaakonPro/Pro-Hub/main/"
 
 local function FetchModule(path)
     local ok, result = pcall(function()
-        return game:HttpGet(BASE_URL .. path)
+        return game:HttpGet(BASE_URL .. path .. "?t=" .. tostring(os.time()))
     end)
 
     if not ok then
