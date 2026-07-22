@@ -7,11 +7,11 @@ function Hub.CreateWindow()
     local Window = Rayfield:CreateWindow({
         Name = "H-Hub",
         Icon = 0,
-        LoadingTitle = "H-Hub",
-        LoadingSubtitle = "by HaakonPro",
+        LoadingTitle = "Pro Hub",
+        LoadingSubtitle = "by Haakon",
         ShowText = "Rayfield",
         Theme = "Default",
-        ToggleUIKeybind = "K",
+        ToggleUIKeybind = "B",
         DisableRayfieldPrompts = false,
         DisableBuildWarnings = false,
         ConfigurationSaving = {
