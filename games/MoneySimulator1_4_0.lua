@@ -1,0 +1,387 @@
+-- ===== games/MoneySimulator1_4_0.lua =====
+local MoneySimulator1_4_0 = {}
+
+local function formatNumber(n)
+	local suffixes = { "", "K", "M", "B", "T", "Qa", "Qi" }
+	local index = 1
+	while n >= 1000 and index < #suffixes do
+		n = n / 1000
+		index = index + 1
+	end
+	return string.format("%.2f%s", n, suffixes[index])
+end
+
+function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
+	local Tabs = {
+		Main = Window:CreateTab("Main"),
+		AutoOres = Window:CreateTab("Auto Ores"),
+		Misc = Window:CreateTab("Misc"),
+		Info = Window:CreateTab("Info"),
+	}
+
+	pcall(function()
+		local pad = workspace:WaitForChild("SellPad", 10)
+		if pad then
+			pad.CanCollide = false
+		end
+	end)
+
+	-- ===== Auto Money (click + XP UI update) =====
+	Tabs.Main:CreateToggle({
+		Name = "Auto Money",
+		CurrentValue = false,
+		Flag = "AutoMoney",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoMoney"].CurrentValue and IsActiveSession() do
+						pcall(function()
+							game.ReplicatedStorage.BobuxEvent:FireServer()
+
+							local player = game.Players.LocalPlayer
+							local stats = player:FindFirstChild("stats")
+							local gui = player.PlayerGui:FindFirstChild("ScreenGui")
+
+							if stats and gui then
+								local req = 10 * 1.25 ^ stats.Level.Value
+								gui.LevelBar.Bar.Size = UDim2.new(stats.XP.Value / req, 0, 1, 0)
+								gui.LvlTxt.Text = "Level "
+									.. stats.Level.Value
+									.. " ("
+									.. math.floor(stats.XP.Value / req * 100)
+									.. "%) "
+									.. formatNumber(stats.XP.Value)
+									.. "/"
+									.. formatNumber(req)
+								gui.ClickPoints.Text = formatNumber(stats.ClickPoints.Value)
+							end
+						end)
+						task.wait(0.05)
+					end
+				end)
+			end
+		end,
+	})
+
+	-- ===== Click-detector based auto toggles =====
+	local function CreateAutoClickToggle(tab, name, flag, partName)
+		tab:CreateToggle({
+			Name = name,
+			CurrentValue = false,
+			Flag = flag,
+			Callback = function(Value)
+				if Value then
+					task.spawn(function()
+						while Rayfield.Flags[flag].CurrentValue and IsActiveSession() do
+							pcall(function()
+								local part = workspace:WaitForChild(partName, 5)
+								local clickDetector = part and part:FindFirstChild("ClickDetector")
+								if clickDetector then
+									fireclickdetector(clickDetector)
+								else
+									warn("[" .. name .. "] ClickDetector not found in " .. partName)
+								end
+							end)
+							task.wait(0.1)
+						end
+					end)
+				end
+			end,
+		})
+	end
+
+	CreateAutoClickToggle(Tabs.Main, "Auto Package", "AutoPackage", "CreatePackage")
+	CreateAutoClickToggle(Tabs.Main, "Auto Iron Block", "AutoIron", "SmeltIron")
+	CreateAutoClickToggle(Tabs.Main, "Auto Gold Block", "AutoGold", "CraftGold")
+	CreateAutoClickToggle(Tabs.Main, "Auto Event Click", "AutoEvent", "UpgradeEvent1")
+
+	-- ===== Auto Minigame =====
+	Tabs.Main:CreateToggle({
+		Name = "Auto Minigame",
+		CurrentValue = false,
+		Flag = "AutoMinigame",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					local player = game.Players.LocalPlayer
+					local character = player.Character or player.CharacterAdded:Wait()
+					local hrp = character:WaitForChild("HumanoidRootPart")
+					local originalPosition = hrp.Position
+
+					while Rayfield.Flags["AutoMinigame"].CurrentValue and IsActiveSession() do
+						pcall(function()
+							local minigame = workspace:FindFirstChild("Minigames")
+								and workspace.Minigames:FindFirstChild("SaveThePackages")
+
+							local gameStarted = minigame
+								and minigame:FindFirstChild("Started")
+								and minigame.Started.Value
+
+							if not gameStarted then
+								game:GetService("ReplicatedStorage").StartMinigame:FireServer("SaveThePackages")
+								task.wait(1)
+								hrp.CFrame = CFrame.new(originalPosition + Vector3.new(0, 3, 0))
+							elseif minigame then
+								local packages = minigame:FindFirstChild("Packages")
+								if packages then
+									for _, package in ipairs(packages:GetChildren()) do
+										if package:IsA("BasePart") and package:FindFirstChild("ClickDetector") then
+											fireclickdetector(package.ClickDetector)
+											break
+										end
+									end
+								end
+							end
+						end)
+						task.wait(0.1)
+					end
+				end)
+			end
+		end,
+	})
+
+	-- ===== Ore selection dropdown =====
+	local OreMapping = {
+		["Crystal"] = "BobuxCrystal1",
+		["Gems 1"] = "BobuxGems1",
+		["Gems 2"] = "BobuxGems2",
+		["Gems 3"] = "BobuxGems3",
+		["Gems 4"] = "BobuxGems4",
+		["Dark Bobux"] = "DarkBobux1",
+		["Gold 1"] = "GoldBobux1",
+		["Gold 2"] = "GoldBobux2",
+		["Neon 1"] = "NeonBobux1",
+		["Neon 2"] = "NeonBobux2",
+		["Rainbow"] = "RainbowBobux1",
+	}
+
+	local CustomNames = {
+		"Crystal",
+		"Gems 1",
+		"Gems 2",
+		"Gems 3",
+		"Gems 4",
+		"Dark Bobux",
+		"Gold 1",
+		"Gold 2",
+		"Neon 1",
+		"Neon 2",
+		"Rainbow",
+	}
+
+	local SelectedOre = OreMapping["Rainbow"]
+
+	Tabs.AutoOres:CreateDropdown({
+		Name = "Select Ore",
+		Options = CustomNames,
+		CurrentOption = "Rainbow",
+		MultipleOptions = false,
+		Flag = "OreDropdown",
+		Callback = function(Options)
+			local SelectedOption = type(Options) == "table" and Options[1] or Options
+			SelectedOre = OreMapping[SelectedOption]
+		end,
+	})
+
+	-- ===== Auto Ore (teleport to selected ore) =====
+	Tabs.AutoOres:CreateToggle({
+		Name = "Auto Ore",
+		CurrentValue = false,
+		Flag = "AutoOre",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					local player = game.Players.LocalPlayer
+					local character = player.Character or player.CharacterAdded:Wait()
+					local hrp = character:WaitForChild("HumanoidRootPart")
+					local originalPosition = hrp.Position
+
+					while Rayfield.Flags["AutoOre"].CurrentValue and IsActiveSession() do
+						local oreFolder = workspace:FindFirstChild("BobuxOres")
+						local oreParts = oreFolder and SelectedOre and oreFolder:FindFirstChild(SelectedOre)
+
+						if not oreParts then
+							warn("[AutoOre] " .. tostring(SelectedOre) .. " not found!")
+							break
+						end
+
+						for _, part in ipairs(oreParts:GetChildren()) do
+							if not (Rayfield.Flags["AutoOre"].CurrentValue and IsActiveSession()) then
+								break
+							end
+							if part:IsA("BasePart") and part.Transparency ~= 1 then
+								pcall(function()
+									hrp.CFrame = CFrame.new(part.Position + Vector3.new(0, 3, 0))
+								end)
+								task.wait(1)
+							end
+						end
+					end
+
+					pcall(function()
+						hrp.CFrame = CFrame.new(originalPosition + Vector3.new(0, 3, 0))
+					end)
+				end)
+			end
+		end,
+	})
+
+	-- ===== Auto All Ores (touch-interest based) =====
+	Tabs.AutoOres:CreateToggle({
+		Name = "Auto All Ores",
+		CurrentValue = false,
+		Flag = "AutoOreAll",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoOreAll"].CurrentValue and IsActiveSession() do
+						pcall(function()
+							local oresFolder = workspace:WaitForChild("BobuxOres", 5)
+							local player = game:GetService("Players").LocalPlayer
+							local character = player.Character or player.CharacterAdded:Wait()
+							local hrp = character:WaitForChild("HumanoidRootPart")
+
+							if oresFolder then
+								for _, ore in ipairs(oresFolder:GetDescendants()) do
+									if ore:IsA("BasePart") then
+										ore.CanCollide = false
+										firetouchinterest(ore, hrp, 0)
+										task.wait(0.01)
+										firetouchinterest(ore, hrp, 1)
+									end
+								end
+							end
+						end)
+						task.wait(0.1)
+					end
+				end)
+			end
+		end,
+	})
+
+	-- ===== Auto Mine (priority-based quarry mining) =====
+	local CurrentOreLabel = Tabs.AutoOres:CreateLabel("Auto Mine Disabled")
+
+	local function findOreWithPriority()
+		local orePriority = {
+			"Meteorite",
+			"Diamond",
+			"Platinum",
+			"Topaz",
+			"Sapphire",
+			"Event Ore",
+			"Opal",
+			"Emerald",
+			"Ruby",
+			"Gold",
+			"Silver",
+			"Amethyst",
+			"Copper",
+			"Iron",
+			"Coal",
+			"Slate",
+			"Stone",
+			"Dirt",
+			"Clay",
+			"Grass",
+		}
+
+		local quarry = workspace:FindFirstChild("BobuxQuarry")
+		if not quarry then
+			return nil
+		end
+
+		local chunk1 = quarry:FindFirstChild("Chunk-1")
+		if not chunk1 then
+			local chunk0 = quarry:FindFirstChild("Chunk0")
+			if chunk0 then
+				for _, ore in ipairs(chunk0:GetChildren()) do
+					if ore:IsA("BasePart") and ore.Name ~= "Bedrock" then
+						pcall(function()
+							game:GetService("ReplicatedStorage").MineBlock:FireServer(ore)
+						end)
+						task.wait(0.5)
+						break
+					end
+				end
+			end
+			chunk1 = quarry:FindFirstChild("Chunk-1")
+		end
+
+		local function findBestOreInChunk(chunk)
+			if not chunk then
+				return nil
+			end
+			local orePriorityMap = {}
+			for priority, oreName in ipairs(orePriority) do
+				orePriorityMap[oreName] = priority
+			end
+
+			local bestOre, bestPriority = nil, math.huge
+			for _, ore in ipairs(chunk:GetChildren()) do
+				if ore:IsA("BasePart") and ore.Name ~= "Bedrock" then
+					local p = orePriorityMap[ore.Name]
+					if p and p < bestPriority then
+						bestOre, bestPriority = ore, p
+					end
+				end
+			end
+			return bestOre
+		end
+
+		if chunk1 then
+			local bestOre = findBestOreInChunk(chunk1)
+			if bestOre then
+				return bestOre
+			end
+		end
+
+		return findBestOreInChunk(quarry:FindFirstChild("Chunk0"))
+	end
+
+	Tabs.AutoOres:CreateToggle({
+		Name = "Auto Mine",
+		CurrentValue = false,
+		Flag = "AutoMine",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoMine"].CurrentValue and IsActiveSession() do
+						pcall(function()
+							local ore = findOreWithPriority()
+							if ore then
+								local health = ore:FindFirstChild("Health")
+								CurrentOreLabel:Set(
+									ore.Name .. ": " .. (health and tostring(health.Value) or "N/A") .. " HP"
+								)
+
+								game:GetService("ReplicatedStorage").MineBlock:FireServer(ore)
+
+								local pad = workspace:WaitForChild("SellPad", 5)
+								local character = game.Players.LocalPlayer.Character
+								local hrp = character and character:FindFirstChildWhichIsA("BasePart")
+
+								if pad and hrp then
+									firetouchinterest(pad, hrp, 0)
+									task.wait()
+									firetouchinterest(pad, hrp, 1)
+								end
+							else
+								CurrentOreLabel:Set("No valid ore found!")
+							end
+						end)
+						task.wait(0.1)
+					end
+					CurrentOreLabel:Set("Auto Mine Disabled")
+				end)
+			end
+		end,
+	})
+
+	-- ===== Info =====
+	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
+	Tabs.Info:CreateParagraph({ Title = "Created/Updated", Content = "24/1/2025 | 18/3/2025" })
+	Tabs.Info:CreateParagraph({ Title = "Discord", Content = "haakonyt" })
+end
+
+return MoneySimulator1_4_0
