@@ -5,7 +5,7 @@ function Hub.CreateWindow()
     local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
     local Window = Rayfield:CreateWindow({
-        Name = "H-Hub",
+        Name = "Pro Hub",
         Icon = 0,
         LoadingTitle = "Pro Hub",
         LoadingSubtitle = "by Haakon",
