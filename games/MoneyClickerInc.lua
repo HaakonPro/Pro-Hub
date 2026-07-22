@@ -17,7 +17,25 @@ function MoneyClickerInc.Init(Window, Rayfield, IsActiveSession)
 					while Rayfield.Flags["AutoClickMoney"].CurrentValue and IsActiveSession() do
 						game:GetService("ReplicatedStorage").Events.ClickMoney:FireServer()
 						task.wait(0.1)
-						print("ran")
+					end
+				end)
+			end
+		end,
+	})
+
+	FarmTab:CreateToggle({
+		Name = "Auto Money Upgrades",
+		CurrentValue = false,
+		Flag = "AutoMoneyUpgrades",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoClickMoney"].CurrentValue and IsActiveSession() do
+						for i = 1, 15 do
+							local Event = game:GetService("ReplicatedStorage").Events.Upgrade
+							Event:FireServer(2, false)
+						end
+						task.wait(1)
 					end
 				end)
 			end
