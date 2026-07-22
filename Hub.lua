@@ -16,7 +16,7 @@ function Hub.CreateWindow()
         DisableBuildWarnings = false,
         ConfigurationSaving = {
             Enabled = true,
-            FolderName = "HHub",
+            FolderName = "ProHub",
             FileName = "Config"
         },
         Discord = {
