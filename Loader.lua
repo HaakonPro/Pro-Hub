@@ -11,7 +11,7 @@ if getgenv().RayfieldWindow then
     pcall(function() getgenv().RayfieldWindow:Destroy() end)
 end
 
-local BASE_URL = "https://raw.githubusercontent.com/HaakonPro/HHub/main/"
+local BASE_URL = "https://raw.githubusercontent.com/HaakonPro/Pro-Hub/main/"
 
 local function FetchModule(path)
     local ok, result = pcall(function()
