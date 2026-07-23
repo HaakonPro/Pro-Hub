@@ -1,3 +1,4 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
 local Version = 1
@@ -26,6 +27,79 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			end
 		end,
 	})
+
+	-- upgrades
+
+	local function FireUpgrade(spec)
+		if type(spec) == "string" then
+			local remote = ReplicatedStorage:FindFirstChild(spec)
+			if remote then
+				remote:FireServer()
+			end
+		elseif type(spec) == "table" then
+			local remote = ReplicatedStorage:FindFirstChild(spec.Remote)
+			if remote then
+				remote:FireServer(table.unpack(spec.Args or {}))
+			end
+		end
+	end
+
+	local function CreateUpgradeDropdown(Tab, config)
+		-- config = {
+		--   Name = "Money Upgrades",
+		--   Flag = "MoneyUpgrades",
+		--   Options = {"Power", "Bag", "Rank", "Tier"},
+		--   Remotes = {
+		--     Power = "UpgradePower",
+		--     Bag = "UpgradeBag",
+		--     Rank = "UpgradeRank",
+		--     Tier = "TierUp",
+		--   },
+		--   Interval = 0.1, -- optional
+		-- }
+		local selected = {}
+		local loopStarted = false
+		local interval = config.Interval or 0.1
+
+		Tab:CreateDropdown({
+			Name = config.Name,
+			Options = config.Options,
+			CurrentOption = {},
+			MultipleOptions = true,
+			Flag = config.Flag,
+			Callback = function(Options)
+				selected = Options
+
+				if not loopStarted then
+					loopStarted = true
+					task.spawn(function()
+						while IsActiveSession() do
+							for optionName, spec in pairs(config.Remotes) do
+								if selected[optionName] then
+									FireUpgrade(spec)
+								end
+							end
+							task.wait(interval)
+						end
+					end)
+				end
+			end,
+		})
+	end
+
+	CreateUpgradeDropdown(Tabs.Upgrades, {
+		Name = "Money Upgrades",
+		Flag = "MoneyUpgrades",
+		Options = { "Power", "Bag", "Rank", "Tier" },
+		Remotes = {
+			Power = "UpgradePower",
+			Bag = "UpgradeBag",
+			Rank = "UpgradeRank",
+			Tier = "TierUp",
+		},
+	})
+
+	-- craftin
 
 	local CraftRecipes2ForDropdown = game:GetService("Workspace"):WaitForChild("CraftRecipes2")
 	local knownGeneratorTypes = {}
@@ -493,13 +567,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		Suffix = "WalkSpeed",
 		CurrentValue = 16,
 		Flag = "PlayerWalkSpeed",
-		Callback = function(Value)
-			local character = game.Players.LocalPlayer.Character
-			local humanoid = character and character:FindFirstChild("Humanoid")
-			if humanoid then
-				humanoid.WalkSpeed = Value
-			end
-		end,
+		Callback = function(Value) end,
 	})
 
 	Tabs.Misc:CreateToggle({
