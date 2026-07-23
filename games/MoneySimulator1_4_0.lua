@@ -15,8 +15,16 @@ local function formatNumber(n)
 end
 
 -- cus game breakin later :P
+local function FixGame()
+	local clone = workspace.NumberScale["31"]:clone
+	clone.Name = "46"
+	clone.Value = " Bugged Value #46"
+	clone.Parent = workspace.NumberScale
 game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = false
 game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = true
+end
+
+FixGame()
 
 function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
@@ -168,7 +176,7 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 											fireclickdetector(clickDetector)
 										end)
 
-										print("Clicked:", package.Name)
+									--	print("Clicked:", package.Name)
 									end
 								end
 
@@ -471,15 +479,41 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 
 			local persec = total / 5
 
-			local scale = math.floor(math.log10(perSecond + 1) / 3 + 1)
+			local scale = math.floor(math.log10(persec + 1) / 3 + 1)
 			scale = math.clamp(scale, 1, #game.Workspace.NumberScale:GetChildren())
 
-			local val = math.floor(perSecond / (1000 ^ scale / 1000) * 100) / 100
+			local val = math.floor(persec / (1000 ^ scale / 1000) * 100) / 100
 			local suffix = game.Workspace.NumberScale[scale].Value
 
 			MoneyLabel:Set("You earn: " .. val .. suffix .. "/s")
 		end,
 	})
+
+	Tabs.Misc:CreateToggle({
+		Name = "Auto Event 5x",
+		CurrentValue = false,
+		Flag = "AutoEvent5x",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					local upgrade = workspace.UpgradeEvent2
+
+					while Rayfield.Flags["AutoEvent5x"].CurrentValue and IsActiveSession() do
+			
+						while Rayfield.Flags["AutoEvent5x"].CurrentValue and upgrade.Bonus.Value < 6 do
+							fireclickdetector(upgrade.ClickDetector)
+						--	print("Bonus:", upgrade.Bonus.Value)
+							task.wait(1)
+						end
+
+						task.wait(1)
+					end
+				end)
+			end
+		end,
+	})
+
+	
 
 	-- ===== Info =====
 	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
