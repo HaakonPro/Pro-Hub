@@ -16,12 +16,12 @@ end
 
 -- cus game breakin later :P
 local function FixGame()
-	local clone = workspace.NumberScale["31"]:clone
+	local clone = workspace.NumberScale["31"]:Clone()
 	clone.Name = "46"
 	clone.Value = " Bugged Value #46"
 	clone.Parent = workspace.NumberScale
-game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = false
-game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = true
+	game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = false
+	game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = true
 end
 
 FixGame()
@@ -176,7 +176,7 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 											fireclickdetector(clickDetector)
 										end)
 
-									--	print("Clicked:", package.Name)
+										--	print("Clicked:", package.Name)
 									end
 								end
 
@@ -499,10 +499,9 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 					local upgrade = workspace.UpgradeEvent2
 
 					while Rayfield.Flags["AutoEvent5x"].CurrentValue and IsActiveSession() do
-			
 						while Rayfield.Flags["AutoEvent5x"].CurrentValue and upgrade.Bonus.Value < 6 do
 							fireclickdetector(upgrade.ClickDetector)
-						--	print("Bonus:", upgrade.Bonus.Value)
+							--	print("Bonus:", upgrade.Bonus.Value)
 							task.wait(1)
 						end
 
@@ -512,8 +511,6 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 			end
 		end,
 	})
-
-	
 
 	-- ===== Info =====
 	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
