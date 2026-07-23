@@ -1,6 +1,6 @@
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
-local Version = 2.1
+local Version = 2.2
 
 function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
@@ -35,9 +35,13 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			if Value then
 				task.spawn(function()
 					while Rayfield.Flags["AutoFillBag"].CurrentValue and IsActiveSession() do
-						local Event = game:GetService("ReplicatedStorage").FillMoney
-						Event:FireServer()
-						task.wait(0.01)
+						if
+							game:GetService("Players").LocalPlayer.PlayerGui.GameGui.Capacity.CapacityBar.Size.X.Scale
+							< 0.1
+						then
+							game:GetService("ReplicatedStorage").FillMoney:FireServer()
+						end
+						task.wait(1)
 					end
 				end)
 			end
@@ -65,7 +69,24 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		local loopStarted = false
 		local interval = config.Interval or 0.1
 
-		Tab:CreateDropdown({
+		local function ensureLoopStarted()
+			if loopStarted then
+				return
+			end
+			loopStarted = true
+			task.spawn(function()
+				while IsActiveSession() do
+					for optionName, spec in pairs(config.Remotes) do
+						if selected[optionName] then
+							FireUpgrade(spec)
+						end
+					end
+					task.wait(interval)
+				end
+			end)
+		end
+
+		local Dropdown = Tab:CreateDropdown({
 			Name = config.Name,
 			Options = config.Options,
 			CurrentOption = {},
@@ -79,20 +100,31 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 					set[name] = true
 				end
 				selected = set
+				ensureLoopStarted()
+			end,
+		})
 
-				if not loopStarted then
-					loopStarted = true
-					task.spawn(function()
-						while IsActiveSession() do
-							for optionName, spec in pairs(config.Remotes) do
-								if selected[optionName] then
-									FireUpgrade(spec)
-								end
-							end
-							task.wait(interval)
-						end
+		Tab:CreateButton({
+			Name = "Enable All " .. config.Name,
+			Callback = function()
+				local set = {}
+				for _, name in ipairs(config.Options) do
+					set[name] = true
+				end
+				selected = set
+
+				-- Try to sync the dropdown's own visible selection too, so it
+				-- shows everything checked. Rayfield's dropdown :Set() signature
+				-- varies by version — if this errors or does nothing visually on
+				-- your build, the firing loop above still works correctly either
+				-- way since `selected` is set directly.
+				if Dropdown and Dropdown.Set then
+					pcall(function()
+						Dropdown:Set(config.Options)
 					end)
 				end
+
+				ensureLoopStarted()
 			end,
 		})
 	end
@@ -106,6 +138,85 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			Bag = "UpgradeBag",
 			Rank = "UpgradeRank",
 			Tier = "TierUp",
+		},
+	})
+
+	CreateUpgradeDropdown(Tabs.Upgrades, {
+		Name = "Ore Upgrades",
+		Flag = "OreUpgrades",
+		Options = {
+			"More money",
+			"ResearchSpeed",
+			"CriticalChance",
+			"OreDamage",
+			"CriticalBonus",
+			"MorePoints",
+			"MoreClickPoints3",
+			"DoubleOre",
+			"MoreMoney2",
+			"MegaCritical",
+			"MoreXP",
+			"GoldJackpot",
+			"RadiationDamage",
+			"OreCooldown2",
+			"OreDamage2",
+			"MoreMoney3",
+			"TripleCrystal",
+			"MoreOres",
+			"CriticalClickPoints",
+			"GemsGenerator",
+			"GoldJackpot2",
+			"TripleResearchPoints",
+			"UltraCritical",
+			"GoldEmpire",
+			"MoreUnobtainium",
+			"OreDamageMultiplier",
+			"VipServerCooldown",
+			"OreDamageMultiplier2",
+			"OreDamage3",
+			"OreCooldown3",
+			"GemsGeneratorPlus",
+			"InstantDestroy1",
+			"MoreCrystals2",
+			"BetterMoneyRune",
+			"LessDamageMoreOres",
+		},
+		Remotes = {
+			["More money"] = { Remote = "OreUpgrades", Args = { "More money" } },
+			ResearchSpeed = { Remote = "OreUpgrades", Args = { "ResearchSpeed" } },
+			CriticalChance = { Remote = "OreUpgrades", Args = { "CriticalChance" } },
+			OreDamage = { Remote = "OreUpgrades", Args = { "OreDamage" } },
+			CriticalBonus = { Remote = "OreUpgrades", Args = { "CriticalBonus" } },
+			MorePoints = { Remote = "OreUpgrades", Args = { "MorePoints" } },
+			MoreClickPoints3 = { Remote = "OreUpgrades", Args = { "MoreClickPoints3" } },
+			DoubleOre = { Remote = "OreUpgrades", Args = { "DoubleOre" } },
+			MoreMoney2 = { Remote = "OreUpgrades", Args = { "MoreMoney2" } },
+			MegaCritical = { Remote = "OreUpgrades", Args = { "MegaCritical" } },
+			MoreXP = { Remote = "OreUpgrades", Args = { "MoreXP" } },
+			GoldJackpot = { Remote = "OreUpgrades", Args = { "GoldJackpot" } },
+			RadiationDamage = { Remote = "OreUpgrades", Args = { "RadiationDamage" } },
+			OreCooldown2 = { Remote = "OreUpgrades", Args = { "OreCooldown2" } },
+			OreDamage2 = { Remote = "OreUpgrades", Args = { "OreDamage2" } },
+			MoreMoney3 = { Remote = "OreUpgrades", Args = { "MoreMoney3" } },
+			TripleCrystal = { Remote = "OreUpgrades", Args = { "TripleCrystal" } },
+			MoreOres = { Remote = "OreUpgrades", Args = { "MoreOres" } },
+			CriticalClickPoints = { Remote = "OreUpgrades", Args = { "CriticalClickPoints" } },
+			GemsGenerator = { Remote = "OreUpgrades", Args = { "GemsGenerator" } },
+			GoldJackpot2 = { Remote = "OreUpgrades", Args = { "GoldJackpot2" } },
+			TripleResearchPoints = { Remote = "OreUpgrades", Args = { "TripleResearchPoints" } },
+			UltraCritical = { Remote = "OreUpgrades", Args = { "UltraCritical" } },
+			GoldEmpire = { Remote = "OreUpgrades", Args = { "GoldEmpire" } },
+			MoreUnobtainium = { Remote = "OreUpgrades", Args = { "MoreUnobtainium" } },
+			OreDamageMultiplier = { Remote = "OreUpgrades", Args = { "OreDamageMultiplier" } },
+			VipServerCooldown = { Remote = "OreUpgrades", Args = { "VipServerCooldown" } },
+			OreDamageMultiplier2 = { Remote = "OreUpgrades", Args = { "OreDamageMultiplier2" } },
+			OreDamage3 = { Remote = "OreUpgrades", Args = { "OreDamage3" } },
+			OreCooldown3 = { Remote = "OreUpgrades", Args = { "OreCooldown3" } },
+			GemsGeneratorPlus = { Remote = "OreUpgrades", Args = { "GemsGeneratorPlus" } },
+			InstantDestroy1 = { Remote = "OreUpgrades", Args = { "InstantDestroy1" } },
+			MoreCrystals2 = { Remote = "OreUpgrades", Args = { "MoreCrystals2" } },
+			BetterMoneyRune = { Remote = "OreUpgrades", Args = { "BetterMoneyRune" } },
+			LessDamageMoreOres = { Remote = "OreUpgrades", Args = { "LessDamageMoreOres" } },
 		},
 	})
 
