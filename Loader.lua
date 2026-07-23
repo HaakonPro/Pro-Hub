@@ -54,6 +54,7 @@ getgenv().RayfieldWindow = Window
 local GameScripts = {
 	[18408132742] = "games/MoneyClickerInc.lua",
 	[6193882657] = "games/MoneySimulator1_4_0.lua",
+	[6628835921] = "games/MoneySimulatorX.lua",
 }
 
 local path = GameScripts[game.PlaceId]
