@@ -112,18 +112,6 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 					set[name] = true
 				end
 				selected = set
-
-				-- Try to sync the dropdown's own visible selection too, so it
-				-- shows everything checked. Rayfield's dropdown :Set() signature
-				-- varies by version — if this errors or does nothing visually on
-				-- your build, the firing loop above still works correctly either
-				-- way since `selected` is set directly.
-				if Dropdown and Dropdown.Set then
-					pcall(function()
-						Dropdown:Set(config.Options)
-					end)
-				end
-
 				ensureLoopStarted()
 			end,
 		})
