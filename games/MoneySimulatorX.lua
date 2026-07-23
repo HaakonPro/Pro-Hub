@@ -1,14 +1,17 @@
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
+local Version = 1
 
 function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
-	local FarmTab = Window:CreateTab("Farm")
-	local Upgrades = Window:CreateTab("Upgrades")
-	local Crafting = Window:CreateTab("Crafting")
-	local Misc = Window:CreateTab("Misc")
-	local Info = Window:CreateTab("Info")
+	local Tabs = {
+		FarmTab = Window:CreateTab("Farm"),
+		Upgrades = Window:CreateTab("Upgrades"),
+		Crafting = Window:CreateTab("Crafting"),
+		Misc = Window:CreateTab("Misc"),
+		Info = Window:CreateTab("Info"),
+	}
 
-	FarmTab:CreateToggle({
+	Tabs.FarmTab:CreateToggle({
 		Name = "Autoclick Money",
 		CurrentValue = false,
 		Flag = "AutoClickMoney",
@@ -24,7 +27,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Misc:CreateSlider({
+	Tabs.Misc:CreateSlider({
 		Name = "WalkSpeed",
 		Range = { 0, 250 },
 		Increment = 5,
@@ -62,9 +65,9 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	local selectedCount = 1
 	local SmartCraftRunning = false
 
-	local StatusLabel = Crafting:CreateLabel("Select a generator type and tier, then craft.")
+	local StatusLabel = Tabs.Crafting:CreateLabel("Select a generator type and tier, then craft.")
 
-	Crafting:CreateDropdown({
+	Tabs.Crafting:CreateDropdown({
 		Name = "Generator Type",
 		Options = knownGeneratorTypes,
 		CurrentOption = { selectedType },
@@ -74,7 +77,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Crafting:CreateInput({
+	Tabs.Crafting:CreateInput({
 		Name = "Tier",
 		PlaceholderText = "e.g. 4",
 		RemoveTextAfterFocusLost = false,
@@ -87,7 +90,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Crafting:CreateInput({
+	Tabs.Crafting:CreateInput({
 		Name = "Count",
 		PlaceholderText = "e.g. 1",
 		RemoveTextAfterFocusLost = false,
@@ -100,7 +103,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	local CraftButton = Crafting:CreateButton({
+	local CraftButton = Tabs.Crafting:CreateButton({
 		Name = "Craft",
 		Callback = function()
 			if SmartCraftRunning then
@@ -498,4 +501,10 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			end)
 		end,
 	})
+
+	-- ===== Info =====
+	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
+	Tabs.Info:CreateParagraph({ Title = "Created/Updated", Content = "24/1/2025 | 18/3/2025" })
+	Tabs.Info:CreateParagraph({ Title = "Discord", Content = "haakonyt" })
+	Tabs.Info:CreateParagraph({ Title = "Version", Content = Version })
 end

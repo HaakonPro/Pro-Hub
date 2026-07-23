@@ -2,12 +2,14 @@
 local Template = {}
 
 function Template.Init(Window, Rayfield, IsActiveSession)
-	local FarmTab = Window:CreateTab("Farm")
-	local Upgrades = Window:CreateTab("Upgrades")
-	local Misc = Window:CreateTab("Misc")
-	local Info = Window:CreateTab("Info")
+	local Tabs = {
+		FarmTab = Window:CreateTab("Farm"),
+		Upgrades = Window:CreateTab("Upgrades"),
+		Misc = Window:CreateTab("Misc"),
+		Info = Window:CreateTab("Info"),
+	}
 
-	FarmTab:CreateToggle({
+	Tabs.FarmTab:CreateToggle({
 		Name = "Autoclick Money",
 		CurrentValue = false,
 		Flag = "AutoClickMoney",
@@ -23,7 +25,7 @@ function Template.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Misc:CreateSlider({
+	Tabs.Misc:CreateSlider({
 		Name = "WalkSpeed",
 		Range = { 0, 250 },
 		Increment = 5,
@@ -39,12 +41,18 @@ function Template.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Misc:CreateButton({
+	Tabs.Misc:CreateButton({
 		Name = "Button :P",
 		Callback = function()
 			print("hi")
 		end,
 	})
+
+	-- ===== Info =====
+	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
+	Tabs.Info:CreateParagraph({ Title = "Created/Updated", Content = "24/1/2025 | 18/3/2025" })
+	Tabs.Info:CreateParagraph({ Title = "Discord", Content = "haakonyt" })
+	Tabs.Info:CreateParagraph({ Title = "Version", Content = Version })
 end
 
 return Template
