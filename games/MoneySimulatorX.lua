@@ -27,6 +27,23 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
+	Tabs.FarmTab:CreateToggle({
+		Name = "Auto Fill Bag [Below 10%]",
+		CurrentValue = false,
+		Flag = "AutoFillBag",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoFillBag"].CurrentValue and IsActiveSession() do
+						local Event = game:GetService("ReplicatedStorage").FillMoney
+						Event:FireServer()
+						task.wait(0.01)
+					end
+				end)
+			end
+		end,
+	})
+
 	-- upgrades
 
 	local function FireUpgrade(spec)
