@@ -14,6 +14,10 @@ local function formatNumber(n)
 	return string.format("%.2f%s", n, suffixes[index])
 end
 
+-- cus game breakin later :P
+game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = false
+game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = true
+
 function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
 		Main = Window:CreateTab("Main"),
@@ -439,6 +443,41 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 					CurrentOreLabel:Set("Auto Mine Disabled")
 				end)
 			end
+		end,
+	})
+
+	local function getBobux()
+		local leaderstats = game.Players.LocalPlayer:FindFirstChild("leaderstats")
+		local bobux = leaderstats and leaderstats:FindFirstChild("Bobux")
+		return bobux and bobux.Value or 0
+	end
+
+	local MoneyLabel = Tabs.Misc:CreateLabel("You earned ?/s")
+
+	Tabs.Misc:CreateButton({
+		Name = "Check Your Money /s [5s Test]",
+		Callback = function()
+			local total = 0
+
+			MoneyLabel:Set("Checking...")
+
+			for i = 1, 5 do
+				local lastValue = getBobux()
+				task.wait(1)
+				local newValue = getBobux()
+
+				total += newValue - lastValue
+			end
+
+			local persec = total / 5
+
+			local scale = math.floor(math.log10(perSecond + 1) / 3 + 1)
+			scale = math.clamp(scale, 1, #game.Workspace.NumberScale:GetChildren())
+
+			local val = math.floor(perSecond / (1000 ^ scale / 1000) * 100) / 100
+			local suffix = game.Workspace.NumberScale[scale].Value
+
+			MoneyLabel:Set("You earn: " .. val .. suffix .. "/s")
 		end,
 	})
 
