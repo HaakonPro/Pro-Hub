@@ -508,3 +508,5 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	Tabs.Info:CreateParagraph({ Title = "Discord", Content = "haakonyt" })
 	Tabs.Info:CreateParagraph({ Title = "Version", Content = Version })
 end
+
+return MoneySimulatorX
