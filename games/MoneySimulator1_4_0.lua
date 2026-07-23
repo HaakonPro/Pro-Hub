@@ -16,12 +16,27 @@ end
 
 -- cus game breakin later :P
 local function FixGame()
-	local clone = workspace.NumberScale["31"]:Clone()
-	clone.Name = "46"
-	clone.Value = " Bugged Value #46"
-	clone.Parent = workspace.NumberScale
-	game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = false
-	game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Effects.Enabled = true
+	local numberScale = workspace:WaitForChild("NumberScale")
+
+	if not numberScale:FindFirstChild("46") then
+		local clone = numberScale:WaitForChild("31"):Clone()
+		clone.Name = "46"
+		clone.Value = "Bugged Value #46"
+		clone.Parent = numberScale
+	end
+
+	local effects = game:GetService("Players").LocalPlayer
+		:WaitForChild("PlayerGui")
+		:WaitForChild("ScreenGui")
+		:FindFirstChild("Effects")
+
+	if effects and effects:IsA("LocalScript") then
+		effects.Disabled = true
+		task.wait()
+		effects.Disabled = false
+	end
+
+	print("Fixed NumberScale 46")
 end
 
 FixGame()
