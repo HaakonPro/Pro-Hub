@@ -48,6 +48,100 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
+	local OreNames = {
+		"ALL",
+		"Silver",
+		"Gold",
+		"Diamond",
+		"Ruby",
+		"Gem",
+		"Uranium",
+		"Kryptonite",
+		"Obsidian",
+		"Unobtainium",
+		"Bedrock",
+		"Pumpkin",
+		"Gift",
+		"Egg",
+	}
+
+	local SelectedOre = "Silver"
+
+	Tabs.FarmTab:CreateDropdown({
+		Name = "Select Ore",
+		Options = OreNames,
+		CurrentOption = "Silver",
+		MultipleOptions = false,
+		Flag = "Dropdown1",
+		Callback = function(Options)
+			SelectedOre = type(Options) == "table" and Options[1] or Options
+		end,
+	})
+
+	local function GetOreHP(ore)
+		local hpLabel = ore.Gui and ore.Gui:FindFirstChild("HPBar") and ore.Gui.HPBar:FindFirstChild("HP")
+		if not hpLabel then
+			return 0
+		end
+		return tonumber(hpLabel.Text:match("%d+")) or 0
+	end
+
+	local function IsMinable(ore, selectedOreLower)
+		if not (ore:IsA("BasePart") and ore:FindFirstChild("Gui") and ore:FindFirstChild("ClickDetector")) then
+			return false
+		end
+		if ore.Transparency >= 0.81 then
+			return false
+		end
+		local hpLabel = ore.Gui.HPBar and ore.Gui.HPBar:FindFirstChild("HP")
+		if hpLabel and hpLabel.Text:lower():find("wait") then
+			return false
+		end
+		if GetOreHP(ore) <= 0 then
+			return false
+		end
+		if selectedOreLower ~= "all" and not ore.Name:lower():find(selectedOreLower) then
+			return false
+		end
+		return true
+	end
+
+	local function FindClosestOre(hrp, selectedOreLower)
+		local closest, closestDistance = nil, math.huge
+		for _, ore in ipairs(game.Workspace.Ores:GetChildren()) do
+			if IsMinable(ore, selectedOreLower) then
+				local dist = (hrp.Position - ore.Position).Magnitude
+				if dist < closestDistance then
+					closest, closestDistance = ore, dist
+				end
+			end
+		end
+		return closest
+	end
+
+	Tabs.FarmTab:CreateToggle({
+		Name = "Auto Mine",
+		CurrentValue = false,
+		Flag = "AutoMine",
+		Callback = function(Value)
+			local player = game.Players.LocalPlayer
+
+			task.spawn(function()
+				while Rayfield.Flags["AutoMine"].CurrentValue and IsActiveSession() do
+					local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+					if hrp then
+						local selectedOreLower = SelectedOre:lower()
+						local closest = FindClosestOre(hrp, selectedOreLower)
+						if closest then
+							fireclickdetector(closest.ClickDetector)
+						end
+					end
+					task.wait(0.1)
+				end
+			end)
+		end,
+	})
+
 	-- upgrades
 
 	local function FireUpgrade(spec)
