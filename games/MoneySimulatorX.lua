@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
-local Version = 1.1
+local Version = 2
 
 function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
