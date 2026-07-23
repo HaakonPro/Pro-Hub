@@ -68,6 +68,7 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			MultipleOptions = true,
 			Flag = config.Flag,
 			Callback = function(Options)
+				print(Options)
 				selected = Options
 
 				if not loopStarted then
