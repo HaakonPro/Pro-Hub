@@ -527,6 +527,26 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
+	Tabs.Misc:CreateToggle({
+		Name = "Auto Upgrade",
+		CurrentValue = false,
+		Flag = "AutoUpgrade",
+		Callback = function(Value)
+			if Value then
+				task.spawn(function()
+					while Rayfield.Flags["AutoUpgrade"].CurrentValue and IsActiveSession() do
+						local Event = game:GetService("ReplicatedStorage").Upgrade
+						Event:FireServer("Rebirth")
+						Event:FireServer("Rank")
+						Event:FireServer("Amount")
+						Event:FireServer("Cooldown")
+						task.wait(1)
+					end
+				end)
+			end
+		end,
+	})
+
 	-- ===== Info =====
 	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
 	Tabs.Info:CreateParagraph({ Title = "Created/Updated", Content = "24/1/2025 | 18/3/2025" })
