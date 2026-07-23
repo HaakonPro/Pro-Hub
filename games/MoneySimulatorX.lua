@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
-local Version = 1
+local Version = 1.1
 
 function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
@@ -32,12 +32,12 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 
 	local function FireUpgrade(spec)
 		if type(spec) == "string" then
-			local remote = ReplicatedStorage:FindFirstChild(spec)
+			local remote = game.ReplicatedStorage:FindFirstChild(spec)
 			if remote then
 				remote:FireServer()
 			end
 		elseif type(spec) == "table" then
-			local remote = ReplicatedStorage:FindFirstChild(spec.Remote)
+			local remote = game.ReplicatedStorage:FindFirstChild(spec.Remote)
 			if remote then
 				remote:FireServer(table.unpack(spec.Args or {}))
 			end
