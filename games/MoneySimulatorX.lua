@@ -27,22 +27,6 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 		end,
 	})
 
-	Tabs.Misc:CreateSlider({
-		Name = "WalkSpeed",
-		Range = { 0, 250 },
-		Increment = 5,
-		Suffix = "WalkSpeed",
-		CurrentValue = 16,
-		Flag = "PlayerWalkSpeed",
-		Callback = function(Value)
-			local character = game.Players.LocalPlayer.Character
-			local humanoid = character and character:FindFirstChild("Humanoid")
-			if humanoid then
-				humanoid.WalkSpeed = Value
-			end
-		end,
-	})
-
 	local CraftRecipes2ForDropdown = game:GetService("Workspace"):WaitForChild("CraftRecipes2")
 	local knownGeneratorTypes = {}
 	do
@@ -499,6 +483,40 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 				)
 				SmartCraftRunning = false
 			end)
+		end,
+	})
+
+	Tabs.Misc:CreateSlider({
+		Name = "WalkSpeed",
+		Range = { 0, 250 },
+		Increment = 5,
+		Suffix = "WalkSpeed",
+		CurrentValue = 16,
+		Flag = "PlayerWalkSpeed",
+		Callback = function(Value)
+			local character = game.Players.LocalPlayer.Character
+			local humanoid = character and character:FindFirstChild("Humanoid")
+			if humanoid then
+				humanoid.WalkSpeed = Value
+			end
+		end,
+	})
+
+	Tabs.Misc:CreateToggle({
+		Name = "Enable WalkSpeed",
+		CurrentValue = false,
+		Flag = "EnableWalkSpeed",
+		Callback = function(Value)
+			local character = game.Players.LocalPlayer.Character
+			local humanoid = character and character:FindFirstChild("Humanoid")
+			if Rayfield.Flags["EnableWalkSpeed"].CurrentValue and IsActiveSession() then
+				game:GetService("Players").LocalPlayer.PlayerGui.GameGui.PlayerSpeed.Disabled = true
+				if humanoid then
+					humanoid.WalkSpeed = Rayfield.Flags["PlayerWalkSpeed"].CurrentValue
+				end
+			else
+				game:GetService("Players").LocalPlayer.PlayerGui.GameGui.PlayerSpeed.Disabled = false
+			end
 		end,
 	})
 
