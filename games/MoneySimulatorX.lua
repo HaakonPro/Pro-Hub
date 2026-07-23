@@ -68,7 +68,10 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			MultipleOptions = true,
 			Flag = config.Flag,
 			Callback = function(Options)
-				print(Options)
+				print("Options contents:")
+				for k, v in pairs(Options) do
+					print("  key:", k, "(" .. typeof(k) .. ")", "-> value:", v, "(" .. typeof(v) .. ")")
+				end
 				selected = Options
 
 				if not loopStarted then
