@@ -1,5 +1,6 @@
 -- ===== games/MoneySimulator1_4_0.lua =====
 local MoneySimulator1_4_0 = {}
+local Version = 1
 
 local RunService = game:GetService("RunService")
 local autoMoneyConnection = nil
@@ -551,6 +552,7 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 	Tabs.Info:CreateParagraph({ Title = "Creator", Content = "Haakon" })
 	Tabs.Info:CreateParagraph({ Title = "Created/Updated", Content = "24/1/2025 | 18/3/2025" })
 	Tabs.Info:CreateParagraph({ Title = "Discord", Content = "haakonyt" })
+	Tabs.Info:CreateParagraph({ Title = "Version", Content = Version })
 end
 
 return MoneySimulator1_4_0
