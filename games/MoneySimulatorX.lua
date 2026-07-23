@@ -1,7 +1,6 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- ===== games/MoneySimulatorX.lua =====
 local MoneySimulatorX = {}
-local Version = 2
+local Version = 2.1
 
 function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	local Tabs = {
@@ -45,18 +44,6 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	end
 
 	local function CreateUpgradeDropdown(Tab, config)
-		-- config = {
-		--   Name = "Money Upgrades",
-		--   Flag = "MoneyUpgrades",
-		--   Options = {"Power", "Bag", "Rank", "Tier"},
-		--   Remotes = {
-		--     Power = "UpgradePower",
-		--     Bag = "UpgradeBag",
-		--     Rank = "UpgradeRank",
-		--     Tier = "TierUp",
-		--   },
-		--   Interval = 0.1, -- optional
-		-- }
 		local selected = {}
 		local loopStarted = false
 		local interval = config.Interval or 0.1
@@ -68,11 +55,13 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			MultipleOptions = true,
 			Flag = config.Flag,
 			Callback = function(Options)
-				print("Options contents:")
-				for k, v in pairs(Options) do
-					print("  key:", k, "(" .. typeof(k) .. ")", "-> value:", v, "(" .. typeof(v) .. ")")
+				-- Options comes in as an ARRAY of selected strings (e.g. {"Power","Bag"}),
+				-- not a dict — convert it to a set so `selected[optionName]` lookups work.
+				local set = {}
+				for _, name in ipairs(Options) do
+					set[name] = true
 				end
-				selected = Options
+				selected = set
 
 				if not loopStarted then
 					loopStarted = true
