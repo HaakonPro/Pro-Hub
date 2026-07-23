@@ -65,9 +65,32 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 	end
 
 	local function CreateUpgradeDropdown(Tab, config)
+		-- config = {
+		--   Name = "Money Upgrades",
+		--   Flag = "MoneyUpgrades",
+		--   Options = {"Power", "Bag", "Rank", "Tier"},
+		--   Remotes = {
+		--     Power = "UpgradePower",
+		--     Bag = "UpgradeBag",
+		--     Rank = "UpgradeRank",
+		--     Tier = "TierUp",
+		--   },
+		--   Interval = 0.1, -- optional
+		-- }
 		local selected = {}
 		local loopStarted = false
 		local interval = config.Interval or 0.1
+
+		-- "ALL" is just a normal dropdown option, prepended automatically — it
+		-- goes through the exact same click-handling path every other option
+		-- does (Rayfield's own table.insert/remove into CurrentOption, then
+		-- Callback(CurrentOption)), so there's no separate API or button whose
+		-- behavior we have to guess at. Checking it just means "fire everything"
+		-- in the loop below, regardless of what else is individually checked.
+		local optionsWithAll = { "ALL" }
+		for _, name in ipairs(config.Options) do
+			table.insert(optionsWithAll, name)
+		end
 
 		local function ensureLoopStarted()
 			if loopStarted then
@@ -76,9 +99,15 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			loopStarted = true
 			task.spawn(function()
 				while IsActiveSession() do
-					for optionName, spec in pairs(config.Remotes) do
-						if selected[optionName] then
+					if selected["ALL"] then
+						for _, spec in pairs(config.Remotes) do
 							FireUpgrade(spec)
+						end
+					else
+						for optionName, spec in pairs(config.Remotes) do
+							if selected[optionName] then
+								FireUpgrade(spec)
+							end
 						end
 					end
 					task.wait(interval)
@@ -86,9 +115,9 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 			end)
 		end
 
-		local Dropdown = Tab:CreateDropdown({
+		Tab:CreateDropdown({
 			Name = config.Name,
-			Options = config.Options,
+			Options = optionsWithAll,
 			CurrentOption = {},
 			MultipleOptions = true,
 			Flag = config.Flag,
@@ -97,18 +126,6 @@ function MoneySimulatorX.Init(Window, Rayfield, IsActiveSession)
 				-- not a dict — convert it to a set so `selected[optionName]` lookups work.
 				local set = {}
 				for _, name in ipairs(Options) do
-					set[name] = true
-				end
-				selected = set
-				ensureLoopStarted()
-			end,
-		})
-
-		Tab:CreateButton({
-			Name = "Enable All " .. config.Name,
-			Callback = function()
-				local set = {}
-				for _, name in ipairs(config.Options) do
 					set[name] = true
 				end
 				selected = set
