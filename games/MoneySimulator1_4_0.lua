@@ -107,47 +107,100 @@ function MoneySimulator1_4_0.Init(Window, Rayfield, IsActiveSession)
 	CreateAutoClickToggle(Tabs.Main, "Auto Event Click", "AutoEvent", "UpgradeEvent1")
 
 	-- ===== Auto Minigame =====
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 	Tabs.Main:CreateToggle({
 		Name = "Auto Minigame",
 		CurrentValue = false,
 		Flag = "AutoMinigame",
-		Callback = function(Value)
-			if Value then
-				task.spawn(function()
-					local player = game.Players.LocalPlayer
+
+		Callback = function(enabled)
+			if not enabled then
+				return
+			end
+
+			task.spawn(function()
+				local player = Players.LocalPlayer
+				local connection
+
+				local function getHRP()
 					local character = player.Character or player.CharacterAdded:Wait()
-					local hrp = character:WaitForChild("HumanoidRootPart")
-					local originalPosition = hrp.Position
+					return character:WaitForChild("HumanoidRootPart")
+				end
 
-					while Rayfield.Flags["AutoMinigame"].CurrentValue and IsActiveSession() do
-						pcall(function()
-							local minigame = workspace:FindFirstChild("Minigames")
-								and workspace.Minigames:FindFirstChild("SaveThePackages")
+				local hrp = getHRP()
+				local originalPosition = hrp.Position
 
-							local gameStarted = minigame
-								and minigame:FindFirstChild("Started")
-								and minigame.Started.Value
+				player.CharacterAdded:Connect(function()
+					hrp = getHRP()
+					originalPosition = hrp.Position
+				end)
 
-							if not gameStarted then
-								game:GetService("ReplicatedStorage").StartMinigame:FireServer("SaveThePackages")
-								task.wait(1)
-								hrp.CFrame = CFrame.new(originalPosition + Vector3.new(0, 3, 0))
-							elseif minigame then
-								local packages = minigame:FindFirstChild("Packages")
-								if packages then
-									for _, package in ipairs(packages:GetChildren()) do
-										if package:IsA("BasePart") and package:FindFirstChild("ClickDetector") then
-											fireclickdetector(package.ClickDetector)
-											break
-										end
+				while Rayfield.Flags.AutoMinigame.CurrentValue and IsActiveSession() do
+					local minigame = workspace:FindFirstChild("Minigames")
+						and workspace.Minigames:FindFirstChild("SaveThePackages")
+
+					if minigame then
+						local started = minigame:FindFirstChild("Started")
+
+						if started and started.Value then
+							local packages = minigame:FindFirstChild("Packages")
+
+							if packages then
+								local function clickPackage(package)
+									if not Rayfield.Flags.AutoMinigame.CurrentValue then
+										return
+									end
+
+									if not package:IsA("BasePart") then
+										return
+									end
+
+									local clickDetector = package:WaitForChild("ClickDetector", 2)
+
+									if clickDetector then
+										pcall(function()
+											fireclickdetector(clickDetector)
+										end)
+
+										print("Clicked:", package.Name)
 									end
 								end
+
+								-- Click existing packages
+								for _, package in ipairs(packages:GetChildren()) do
+									task.spawn(clickPackage, package)
+								end
+
+								-- Listen for new packages
+								if not connection then
+									connection = packages.ChildAdded:Connect(function(package)
+										task.spawn(clickPackage, package)
+									end)
+								end
 							end
-						end)
-						task.wait(0.1)
+						else
+							ReplicatedStorage.StartMinigame:FireServer("SaveThePackages")
+
+							repeat
+								task.wait()
+							until started.Value or not Rayfield.Flags.AutoMinigame.CurrentValue
+
+							if hrp then
+								hrp.CFrame = CFrame.new(originalPosition + Vector3.new(0, 3, 0))
+							end
+						end
 					end
-				end)
-			end
+
+					task.wait(0.5)
+				end
+
+				if connection then
+					connection:Disconnect()
+					connection = nil
+				end
+			end)
 		end,
 	})
 
